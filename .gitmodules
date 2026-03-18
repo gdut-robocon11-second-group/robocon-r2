@@ -1,0 +1,3 @@
+[submodule "Middlewares/robocon-library"]
+	path = Middlewares/robocon-library
+	url = https://github.com/gdut-robocon11-second-group/robocon-library.git

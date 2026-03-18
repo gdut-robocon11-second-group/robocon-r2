@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "STM32 Debug",          // 调试配置名称，可以随便起
+            "type": "cortex-debug",          // 固定写法，告诉VS Code用这个插件
+            "request": "launch",              // 启动模式
+            "servertype": "openocd",          // 服务器类型，我们之前聊的openocd
+            "cwd": "${workspaceFolder}",        // 当前工作目录
+            "svdFile": "${workspaceFolder}/debug/stm32f407.svd",  // 提供芯片寄存器视图
+            "executable": "${workspaceFolder}/build/robocon11-second-group-framework.elf",  // elf文件路径
+            "configFiles": [                   // cfg文件
+                "interface/stlink.cfg",        // ST-Link 通用配置（如 V2/V3）
+                "target/stm32f4x.cfg"          // F407，用这个就行
+            ],
+            "runToEntryPoint": "main",         // 启动后自动跑到main函数停下
+            "showDevDebugOutput": "none"      // 不显示调试器底层日志
+        }
+    ]
+}

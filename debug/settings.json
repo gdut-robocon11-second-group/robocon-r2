@@ -1,0 +1,9 @@
+{
+  "clangd.arguments": [
+    "--compile-commands-dir=build",
+    "--background-index",
+    "--clang-tidy",
+    "--completion-style=detailed",
+    "--query-driver=你的编译器地址,要看到gcc.exe的/arm-none-eabi-*" // ⚠️ 重点：比如 "C:/ArmGNUToolchain/bin" 或 "/usr/bin"
+  ]
+}
