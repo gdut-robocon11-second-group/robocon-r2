@@ -1,0 +1,6 @@
+Checks: >
+  -*,
+  portability-*
+HeaderFilterRegex: >
+  Inc/*.hpp,
+  Src/*.cpp

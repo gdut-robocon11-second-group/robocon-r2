@@ -1,0 +1,54 @@
+CompileFlags:
+  Add:
+    - -isystem
+    - Middlewares/Third_Party/tlsf
+    - -I
+    - Middlewares/robocon-library/Async
+    - -I
+    - Middlewares/robocon-library/BSP
+    - -I
+    - Middlewares/robocon-library/Components
+    - -I
+    - Middlewares/robocon-library/DSP
+    - -I
+    - Middlewares/robocon-library/Modules
+    - -I
+    - Middlewares/robocon-library/Third_Party/CMSIS-DSP/dsppp/Include/dsppp
+    - -I
+    - Middlewares/robocon-library/Third_Party/CMSIS-DSP/dsppp/Include/dsppp/DSP
+    - -I
+    - Middlewares/robocon-library/Third_Party/CMSIS-DSP/dsppp/Include/dsppp/Helium
+    - -I
+    - Middlewares/robocon-library/Third_Party/CMSIS-DSP/dsppp/Include/dsppp/Neon
+    - -I
+    - Middlewares/robocon-library/Third_Party/CMSIS-DSP/dsppp/Include/dsppp/num_features
+    - -I
+    - Middlewares/robocon-library/Third_Party/CMSIS-DSP/dsppp/Include/dsppp/Scalar
+    - -I
+    - Core/Inc
+    - -I
+    - Drivers/STM32F4xx_HAL_Driver/Inc
+    - -I
+    - Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+    - -I
+    - Drivers/CMSIS/Include
+    - -I
+    - Drivers/CMSIS/Device/ST/STM32F4xx/Include
+    - -DSTM32F407xx
+    - -DUSE_HAL_DRIVER
+  CompilationDatabase: build
+
+---
+If:
+  PathMatch: .*(\.(cpp|cc|cxx|hpp|hh|hxx|ipp|tpp))$
+CompileFlags:
+  Add:
+    - -std=c++23
+
+---
+If:
+  PathMatch: .*/Drivers/(CMSIS|STM32F4xx_HAL_Driver)/.*
+Diagnostics:
+  Suppress:
+    - unused-includes
+  
