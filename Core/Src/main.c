@@ -18,22 +18,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "bsp_iic.hpp"
-#include "bsp_pca9685.hpp"
-#include "bsp_ps2.hpp"
-#include "bsp_timer.hpp"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "R2_control.hpp"
-#include "bsp_gpio_pin.hpp"
-#include "cmsis_os2.h"
-#include "stm32f4xx_hal_gpio.h"
-#include "stm32f4xx_hal_tim.h"
-#include "stm32f4xx_hal_uart.h"
-#include <algorithm>
-#include <exception>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -74,65 +63,11 @@ UART_HandleTypeDef huart4;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4*8,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
-gdut::spi_proxy spi_proxy_{&hspi1};
-static GPIO_InitTypeDef ps2_init{
-        .Pin = GPIO_PIN_4,
-        .Mode = GPIO_MODE_OUTPUT_PP,
-        .Pull = GPIO_NOPULL,
-        .Speed = GPIO_SPEED_FREQ_LOW,
-        .Alternate = 0,
-    };
-gdut::gpio_proxy ps2_pin(GPIOC, &ps2_init);
-gdut::ps2_controller::pins_interface ps2_pins{
-    .set_att = [](bool state) { ps2_pin.write(state); },
-    .delay_ms = [](uint32_t ms) { osDelay(ms); },
-};
-gdut::ps2_controller::config g_ps2_config{
-    .spi_timeout = std::chrono::milliseconds{20},
-    .att_guard_us = 100U,
-};
-gdut::ps2_controller g_ps2(ps2_pins, &spi_proxy_, g_ps2_config);
-gdut::i2c ps2_i2c(&hi2c3);
-gdut::pca9685 g_pca9685(ps2_i2c);
 
-gdut::timer g_left_lift_timer(&htim8);
-gdut::timer g_right_claw_timer(&htim8);
-gdut::timer g_weapon_claw_timer(&htim8);
-gdut::timer g_motor_timer(&htim13);
-
-gdut::R2_stepper_motor g_left_lift{
-  .stepper_timer =  &g_left_lift_timer,
-  .channel = TIM_CHANNEL_1,
-    .dir_port = GPIOC,
-  .dir_pin = GPIO_PIN_1
-};
-
-gdut::R2_stepper_motor g_right_claw{
-  .stepper_timer =  &g_right_claw_timer,
-  .channel = TIM_CHANNEL_2,
-    .dir_port = GPIOC,
-  .dir_pin = GPIO_PIN_2
-};
-
-gdut::R2_stepper_motor g_weapon_claw{
-  .stepper_timer =  &g_weapon_claw_timer,
-  .channel = TIM_CHANNEL_3,
-    .dir_port = GPIOC,
-  .dir_pin = GPIO_PIN_3
-};
-
-gdut::R2_motor push_motor{
-  .motor_timer =  &g_motor_timer,
-  .channel = TIM_CHANNEL_1,
-    .dir_port = GPIOF,
-  .dir_pin = GPIO_PIN_1
-};
-
-gdut::R2_controller g_r2_controller;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -171,12 +106,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-      /* std::set_terminate([]() {
-    // 这里可以添加一些异常处理逻辑，比如输出错误信息或者重启系统
-    while (true) {
-      // 无限循环，等待系统重启
-    }
-  });*/
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -188,7 +118,7 @@ int main(void)
 
   /* USER CODE END Init */
 
-  /* Configure the system clock *
+  /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
@@ -212,11 +142,11 @@ int main(void)
   MX_TIM13_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-  //HAL_UART_Transmit(&huart4, (uint8_t *)"Hello World!\r\n", 14, 0xFFFF);
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
-    osKernelInitialize();
+  osKernelInitialize();
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -255,7 +185,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    osDelay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -429,13 +358,13 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 15;
+  htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -479,12 +408,12 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 15;
+  htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -528,12 +457,12 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 15;
+  htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -577,12 +506,12 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 15;
+  htim4.Init.Prescaler = 0;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -627,9 +556,9 @@ static void MX_TIM5_Init(void)
 
   /* USER CODE END TIM5_Init 1 */
   htim5.Instance = TIM5;
-  htim5.Init.Prescaler = 15;
+  htim5.Init.Prescaler = 0;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 999;
+  htim5.Init.Period = 4294967295;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
@@ -642,10 +571,6 @@ static void MX_TIM5_Init(void)
     Error_Handler();
   }
   if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_OC_Init(&htim5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -698,9 +623,9 @@ static void MX_TIM8_Init(void)
 
   /* USER CODE END TIM8_Init 1 */
   htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 2;
+  htim8.Init.Prescaler = 0;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim8.Init.Period = 999;
+  htim8.Init.Period = 65535;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 0;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -769,9 +694,9 @@ static void MX_TIM9_Init(void)
 
   /* USER CODE END TIM9_Init 1 */
   htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 15;
+  htim9.Init.Prescaler = 0;
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim9.Init.Period = 999;
+  htim9.Init.Period = 65535;
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim9) != HAL_OK)
@@ -1086,21 +1011,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
-    g_pca9685.init();
-      g_r2_controller.set_parameters(
-      &g_ps2,
-      &g_right_claw,
-      &g_left_lift,
-      &g_weapon_claw,
-      &push_motor,
-      &g_pca9685,
-      &htim1,
-      &htim2,
-      &htim3,
-      &htim4,
-      &htim5,
-      &htim9);
-      g_r2_controller.start();
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
